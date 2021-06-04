@@ -1,12 +1,20 @@
 import {$, $n} from './jdom.js'
 
+
+
 class PJF {
 
     static globalComponents = {}
     static gmixin = {}
 
+    set (get){
+        console.log("changed");
+        console.log(get);
+        return get
+    }
+
     constructor(options = {}){
-        options = {...{components: {}}, ...options} 
+        options = {...{components: {}, ...{watch: {}}}, ...options} 
         for (const name in PJF.gmixin) {
             this[name] = PJF.gmixin[name]
         }
@@ -17,28 +25,47 @@ class PJF {
         this.template = options.template
         this.components = {} 
         
-        for (const componentName in {...PJF.globalComponents, ...options.components}) {
-            const component = PJF.globalComponents[componentName]
+        const allComponents = {...PJF.globalComponents, ...options.components}
+
+        for (const componentName in allComponents) {
+            const component = allComponents[componentName]
             
             if (componentName == component)
                 this.components[component.name] = component
             else
                 this.components[componentName] = component
-        }    
+        }
+
+        this.watch = options.watch
         
+
         this.$refs = {}
         
         this.name = options.name
 
         this.dom = $($n("dom").append(this.template).getElem().children[0])
+
+        
+        const props = {}
+        
+        PJF.watch(this, null, (name, oldValue, value)=>{
+            this.updateDynamics()
+            
+            if (this.watch[name])
+                this.watch[name](oldValue, value)
+        }, ['dom', "name", "$refs", "components", "attributes","template", "watch"])
+
+        
+
+        //Object.defineProperties(this, props);
     }
+
 
     template(name, template){
         this.templates[name] = {...this.mixin, ...template}
     }
 
-    render(){
-        
+    render(renderFirstTime = false){
         if (this.slot) {
             this.dom.$("slot").each(el => {
                 el.innerHTML = this.slot
@@ -69,6 +96,8 @@ class PJF {
             this.dom.each(addEventToElement)
         }
 
+        this.updateDynamics()
+
         if (this.style) {
             for (const selector in this.style) {
                 const css = this.style[selector]
@@ -91,18 +120,44 @@ class PJF {
                 pjf.$attrs = {}
                 for (const attr of el.attributes)
                     pjf.$attrs[attr.name] = attr.value
-
-                $(el).html('').append(pjf.render())
+                    
+                $(el).html('').append(pjf.render(true))
             })
         }
 
 
         if (this.created)
             this.created(this.dom)
-
-
+        
             
+
         return this.dom
+    }
+
+    reload(){
+        this.dom.elem.parentNode.replaceChild(this.dom.elem, this.render().elem)
+    }
+
+    updateDynamics(){
+        const list = []
+
+        const recAdd = (obj, con="")=>{
+            for (const name in obj) {
+                list.push(con+name)
+
+                if (typeof obj[name] == 'object' && obj[name].constructor == ({}).constructor)
+                    recAdd(obj[name], name+".")
+            }
+        }
+
+        recAdd(this)
+
+        for (const name of list) {
+            this.dom.$("[p-text='"+name+"']").each(el => {
+                console.log(PJF.unpackObject(this, name));
+                $(el).text(PJF.unpackObject(this, name))
+            })
+        }
     }
 
     static component(v, pjf=false) {
@@ -116,8 +171,52 @@ class PJF {
         PJF.gmixin = {...PJF.gmixin, ...mixin}
     }
 
+    static watch(object, defGetter, defSetter, exclude=[], namePrefix=""){
+        for (const name in object) {
+            if (exclude.includes(name))
+                continue;
+            let value = object[name]
+            let oldValue
+    
+            console.log(namePrefix+name);
+            if (delete object[name]) {
+                Object.defineProperty(object, name, {
+                    get: ()=>{
+                        if (defGetter)
+                            defGetter()
+                        return value
+                    }, 
+                    set: (val)=>{
+                        oldValue = value
+                        console.log(val);
+                        value = val
+                        defSetter(namePrefix+name, oldValue, value)
+                        return val
+                    }, 
+                    enumerable: true, 
+                    configurable: true
+                });
+            }
+
+            if (object[name].constructor == ({}).constructor) {
+                this.watch(object[name], defGetter, defSetter, [], name+".")
+                console.log(name);
+            }
+        }
+    }
+
+    static unpackObject(object, path){
+        let out = object
+
+        for (const part of path.split(".")) {
+            out = out[part]
+        }
+
+        return out
+    }
+
     appendTo(selector){
-        $(selector).append(this.render())
+        $(selector).append(this.render(true))
     }
 
 }
