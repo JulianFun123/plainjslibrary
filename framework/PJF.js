@@ -1,9 +1,30 @@
 import {$, $n} from './jdom.js'
 
 class PJF {
-    constructor(){
-        this.templates = {}
+
+    static globalComponents = []
+
+    constructor(options = {}){
+        options = {...{components: []}, ...options} 
+        for (const name in options) {
+            this[name] = options[name]
+        }
+
+        this.template = options.template
+        this.components = {} 
+        
+        for (const component of PJF.globalComponents)
+            this.components[component.name] = component    
+        
+        for (const component of options.components)
+            this.components[component.name] = component    
+            
         this.mixin = {}
+        this.$refs = {}
+        
+        this.name = options.name
+
+        this.dom = $n("dom").append(this.template)
     }
 
     template(name, template){
@@ -14,67 +35,42 @@ class PJF {
         this.mixin = mixin
     }
 
-    run(selector){
-        for (const name in this.templates) {
-            const template = this.templates[name]
-            template.reloadComponent = ()=>{
-                this.render($(selector).$(name), template)    
-            }
-            this.render($(selector).$(name), template)
-            if (template.mounted)
-                template.mounted()
-        }
-    }
+    render(){
+        this.dom.$("[ref]").each(el => {
+            this.$refs[el.getAttribute("ref")] = el
+        })
 
-    render(selector, template){
-        selector.each(el => {
-            const slot = el.innerHTML
-            const vDom = $n("dom").append(template.template)
-
-            template.$refs = {}
-            
-            vDom.$("slot").each(innerEl=>{
-                innerEl.innerHTML = slot
-            })
-
-            $(el).html("")
-
-            if (template.beforeRender)
-                template.beforeRender
-
-            $(el).append(vDom)
-            
-            if (template.style) {
-                for (const selector in template.style) {
-                    const css = template.style[selector]
-                    vDom.$(selector).css(css)
-                }
-            }
-
-            vDom.$("[ref]").each(el => {
-                template.$refs[el.getAttribute("ref")] = el
-            })
-
-            vDom.$("[p-click]").each(el => {
-                el.addEventListener("click", (e)=>{
-                    const a = function(e){
-                        const r = eval(el.getAttribute("p-click"))
-
-                        if (typeof r == 'function') {
-                            r(e)
-                        }
+        for (const name of ["abort", "afterprint", "animationend", "animationiteration", "animationstart", "beforeprint", "beforeunload", "blur", "canplay", "canplaythrough", "change", "click", "contextmenu", "copy", "cut", "dblclick", "drag", "dragend", "dragenter", "dragleave", "dragover", "dragstart", "drop", "durationchange", "ended", "error", "focus", "focusin", "focusout", "fullscreenchange", "fullscreenerror", "hashchange", "input", "invalid", "keydown", "keypress", "keyup", "load", "loadeddata", "loadedmetadata", "loadstart", "message", "mousedown", "mouseenter", "mouseleave", "mousemove", "mouseover", "mouseout", "mouseup", "offline", "online", "open", "pagehide", "pageshow", "paste", "pause", "play", "playing", "progress", "ratechange", "resize", "reset", "scroll", "search", "seeked", "seeking", "select", "show", "stalled", "submit", "suspend", "timeupdate", "toggle", "touchcancel", "touchend", "touchmove", "touchstart", "transitionend", "unload", "volumechange", "waiting", "wheel", "altKey", "altKey", "animationName", "bubbles", "button", "buttons", "cancelable", "charCode", "clientX", "clientY", "code", "createEvent", "ctrlKey", "ctrlKey", "currentTarget", "data", "defaultPrevented", "deltaX", "deltaY", "deltaZ", "deltaMode", "detail", "elapsedTime", "elapsedTime", "eventPhase", "getModifierState", "inputType", "isTrusted", "key", "keyCode", "location", "metaKey", "metaKey", "newURL", "oldURL", "pageX", "pageY", "persisted", "preventDefault", "propertyName", "relatedTarget", "relatedTarget", "screenX", "screenY", "shiftKey", "shiftKey", "stopImmediatePropagation", "stopPropagation", "target", "targetTouches", "timeStamp", "touches", "transitionend", "type", "which", "which", "view", ]) {
+            this.dom.$("[p-"+name+"]").each(el => {
+                el.addEventListener(name, (e)=>{
+                    const r = eval(el.getAttribute("p-click"))
+                    if (typeof r == 'function') {
+                        r(e)
                     }
-                    a.bind(template)(e)
                 });
             })
+        }
 
-            console.log(template);
+        if (this.style) {
+            for (const selector in this.style) {
+                const css = this.style[selector]
+                vDom.$(selector).css(css)
+            }
+        }
 
-            if (template.rendered)
-                template.mounted(vDom)
+        for (const componentName in this.components) {
+            this.dom.$(componentName).html('').append(this.components[componentName].render())
+        }
 
-            this.run(el)
-        })
+
+        if (this.created)
+            this.created(this.dom)
+
+        return this.dom
+    }
+
+    static component(pjf) {
+        this.globalComponents.push(pjf)
     }
 
 }

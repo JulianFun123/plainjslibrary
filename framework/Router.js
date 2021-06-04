@@ -1,9 +1,12 @@
-class Router {
-    constructor(routes){
-        this.routes = routes
+import PJF from "./PJF.js";
 
-        this.template = `<div ref="currentPage">APP</div>`
-        console.log(this);
+class Router extends PJF {
+    constructor(routes){
+        super({
+            name: "router-view",
+            template: `<div ref="page"></div>`
+        })
+        this.routes = routes
     }
 
     

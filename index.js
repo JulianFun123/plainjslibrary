@@ -1,22 +1,20 @@
 import PJF from './framework/PJF.js'
 import example from './components/example.js'
 import router from './router.js'
+import { $ } from './framework/jdom.js'
 
-const app = new PJF()
-
-app.template("cool", {
-    template: `<h2>Yeet <slot></slot></h2>`
+const exampleComponent = new PJF({
+    name: "test",
+    template: `<h2 p-click="this.exampleMethod">Component ;)</h2>`,
+    exampleMethod(){
+        alert("example")
+    }
 })
 
-app.template("yo", {
-    template: `<h1>Hello world :)</h1><slot></slot><cool>Hello there</cool>`
+PJF.component(exampleComponent)
+
+const app = new PJF({
+    template: `<h1 p-click="console.log('Hello there')">Hello there!</h1><test></test>`
 })
 
-app.template("example", example)
-
-
-app.template("router-view", router)
-
-app.run("#app")
-
-router.run()
+$("#app").append(app.render())
