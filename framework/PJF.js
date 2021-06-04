@@ -80,6 +80,13 @@ class PJF {
             this.$refs[el.getAttribute("ref")] = $(el)
         })
 
+        this.dom.$("input[p-model], textarea[p-model]").each(el => {
+            el = $(el)
+            el.on("input",()=>{
+                this[el.attr("p-model")] = el.val()
+            })
+        })
+
         for (const name of ["abort", "afterprint", "animationend", "animationiteration", "animationstart", "beforeprint", "beforeunload", "blur", "canplay", "canplaythrough", "change", "click", "contextmenu", "copy", "cut", "dblclick", "drag", "dragend", "dragenter", "dragleave", "dragover", "dragstart", "drop", "durationchange", "ended", "error", "focus", "focusin", "focusout", "fullscreenchange", "fullscreenerror", "hashchange", "input", "invalid", "keydown", "keypress", "keyup", "load", "loadeddata", "loadedmetadata", "loadstart", "message", "mousedown", "mouseenter", "mouseleave", "mousemove", "mouseover", "mouseout", "mouseup", "offline", "online", "open", "pagehide", "pageshow", "paste", "pause", "play", "playing", "progress", "ratechange", "resize", "reset", "scroll", "search", "seeked", "seeking", "select", "show", "stalled", "submit", "suspend", "timeupdate", "toggle", "touchcancel", "touchend", "touchmove", "touchstart", "transitionend", "unload", "volumechange", "waiting", "wheel", "altKey", "altKey", "animationName", "bubbles", "button", "buttons", "cancelable", "charCode", "clientX", "clientY", "code", "createEvent", "ctrlKey", "ctrlKey", "currentTarget", "data", "defaultPrevented", "deltaX", "deltaY", "deltaZ", "deltaMode", "detail", "elapsedTime", "elapsedTime", "eventPhase", "getModifierState", "inputType", "isTrusted", "key", "keyCode", "location", "metaKey", "metaKey", "newURL", "oldURL", "pageX", "pageY", "persisted", "preventDefault", "propertyName", "relatedTarget", "relatedTarget", "screenX", "screenY", "shiftKey", "shiftKey", "stopImmediatePropagation", "stopPropagation", "target", "targetTouches", "timeStamp", "touches", "transitionend", "type", "which", "which", "view", ]) {
             const addEventToElement = el => {
                 if (el.getAttribute("p-"+name)) {
@@ -153,9 +160,13 @@ class PJF {
         recAdd(this)
 
         for (const name of list) {
-            this.dom.$("[p-text='"+name+"']").each(el => {
-                console.log(PJF.unpackObject(this, name));
-                $(el).text(PJF.unpackObject(this, name))
+            this.dom.$("[p-text='"+name+"']").each(el => { $(el).text(PJF.unpackObject(this, name)) })
+            this.dom.$("[p-html='"+name+"']").each(el => { $(el).text(PJF.unpackObject(this, name)) })
+            this.dom.$("[p-model='"+name+"']").each(el => {
+                const val = PJF.unpackObject(this, name)
+                if(el instanceof HTMLInputElement) {
+                    el.value = val
+                }
             })
         }
     }

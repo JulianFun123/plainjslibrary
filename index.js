@@ -28,9 +28,15 @@ const app = new PJF({
             data: {
                 myData: "Here"
             },
-            template: `<h5><input type="text" p-input="this.data.myData = e.target.value;">Yeet<span ref="showme" p-text="data.myData"></span></h5>`,
+            template: `
+                <div>
+                    <input type="text" p-model="a">
+                    <input type="text" p-model="a">
+                    <span p-text="a">asd</span>
+                </div>
+            `,
             created(){
-                this.$refs.showme.text(this.a)
+                
             },
             watch: {
                 a(from, to){

@@ -46,10 +46,17 @@ I just wanted to build something like Vue to look how it may would work with the
             `<div>
                 <h1 p-click="console.log('Hello there')">Hello there!</h1>
                 <router-view></router-view>
+                <span p-text="hello"></span>
                 <test></test>
                 <test></test>
                 <test></test>
-            </div>`
+            </div>`,
+            hello: "Hello there",
+            watch: {
+                hello(from, to){
+                    console.log(to)
+                }
+            }
         })
 
 
