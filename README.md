@@ -48,6 +48,7 @@ I just wanted to build something like Vue to look how it may would work with the
                 <router-view></router-view>
                 <input id="helloInput" p-model="hello">
                 <span p-text="'Enter: '+this.hello"></span>
+                <button p-click="alertMe">CLICK ME</button>
                 <test></test>
                 <test></test>
             </div>`,
@@ -56,6 +57,9 @@ I just wanted to build something like Vue to look how it may would work with the
                 hello(from, to){
                     console.log("Changed "+to)
                 }
+            },
+            alertMe(){
+                alert("You've input: "+this.hello)
             },
             style:{
                 "#helloInput": {
