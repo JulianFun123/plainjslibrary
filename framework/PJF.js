@@ -83,7 +83,7 @@ class PJF {
         this.dom.$("input[p-model], textarea[p-model]").each(el => {
             el = $(el)
             el.on("input",()=>{
-                this[el.attr("p-model")] = el.val()
+                PJF.setUnpackObjectValue(this, el.attr("p-model"), el.val())
             })
         })
 
@@ -224,6 +224,19 @@ class PJF {
         }
 
         return out
+    }
+
+    static setUnpackObjectValue(object, path, value){
+        let out = object
+
+        const a = []
+        for (const part of path.split(".")) {
+            a.push(part)
+            
+            if (a.join(".") == path)
+                out[part] = value;
+            out = out[part]
+        }
     }
 
     appendTo(selector){

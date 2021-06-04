@@ -30,9 +30,9 @@ const app = new PJF({
             },
             template: `
                 <div>
-                    <input type="text" p-model="a">
-                    <input type="text" p-model="a">
-                    <span p-text="a">asd</span>
+                    <input type="text" p-model="data.myData">
+                    <input type="text" p-model="data.myData">
+                    <span p-text="data.myData">asd</span>
                 </div>
             `,
             created(){
