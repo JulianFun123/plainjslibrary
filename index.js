@@ -32,7 +32,7 @@ const app = new PJF({
                 <div>
                     <input type="text" p-model="data.myData">
                     <input type="text" p-model="data.myData">
-                    <span p-text="data.myData">asd</span>
+                    <span p-text="'Okay: '+this.data.myData">asd</span>
                 </div>
             `,
             created(){

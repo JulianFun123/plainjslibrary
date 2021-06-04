@@ -160,8 +160,6 @@ class PJF {
         recAdd(this)
 
         for (const name of list) {
-            this.dom.$("[p-text='"+name+"']").each(el => { $(el).text(PJF.unpackObject(this, name)) })
-            this.dom.$("[p-html='"+name+"']").each(el => { $(el).text(PJF.unpackObject(this, name)) })
             this.dom.$("[p-model='"+name+"']").each(el => {
                 const val = PJF.unpackObject(this, name)
                 if(el instanceof HTMLInputElement) {
@@ -169,6 +167,8 @@ class PJF {
                 }
             })
         }
+        this.dom.$("[p-text]").each(el => { $(el).text(eval(el.getAttribute("p-text"))) })
+        this.dom.$("[p-html]").each(el => { $(el).text(eval(el.getAttribute("p-html"))) })
     }
 
     static component(v, pjf=false) {
