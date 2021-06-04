@@ -16,14 +16,32 @@ class Router extends PJF {
             this.run()
         })
 
+        const _this = this
 
+        this.routerLink = {
+            name: "router-link",
+            url: "/",
+            template: `<a ref="anchor" p-click="this.onClick"><slot></slot></a>`,
+            created(){
+                this.url = this.$attrs.to;
+                this.$refs.anchor.attr("href", this.url)
+            },
+            onClick(e){
+                _this.push(this.url)
+                e.preventDefault()
+                return false
+            }
+        }
     }
 
     run(){
         for (const route of this.routes) {
             if (route.path == window.location.pathname) {
-                console.log(route.component);
-                $(this.$refs.page).html("").append((new PJF(route.component)).render())
+                console.log("YEE");
+                console.log(this.$refs.page);
+                let psf = route.component instanceof PJF ? route.component :  new PJF(route.component)
+                this.$refs.page.html("").append(psf.render())
+                console.log(psf.render());
             }
         }
     }

@@ -6,17 +6,22 @@ import { $ } from './framework/jdom.js'
 PJF.component({
     name: "test",
     test: "hello",
-    template: `<h2 p-click="alert(this.test)">Component ;)</h2>`,
+    template: `<h2 p-click="alert(this.test)">Compo<slot></slot>nent ;)</h2>`,
     created(){
         this.test = Math.random()*10000
     }
 })
 
 PJF.component(router)
+PJF.component(router.routerLink)
 
 
 const app = new PJF({
-    template: `<h1 p-click="console.log('Hello there')">Hello there!</h1><router-view></router-view><test></test><test></test><test></test>`
+    template: `
+    <div>
+        <h1 p-click="console.log('Hello there')">Hello there!</h1><router-view></router-view>
+    <test></test><test>SLOT</test><router-link to="/about">Hello</router-link>
+    </div>`
 })
 
 

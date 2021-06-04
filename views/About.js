@@ -1,5 +1,9 @@
 import PJF from "../framework/PJF.js"
 
 export default {
-    template: `<h1>About!</h1>`
+    template: `
+    <div>
+        <h1>About!</h1>
+        <router-link to="/">Go home</router-link>
+    </div>`
 }
