@@ -1,7 +1,18 @@
 export default {
-    template: `<h3 ref="myh3" style="color: #FF4343">Hello there ;)!</h3>`,
-    mounted(){
+    template: `
+        <h3 ref="myh3" p-click="this.log" style="color: #FF4343">Hello there ;)!</h3>
+    `,
+    tag: "div",
+    created(){
         console.log("Okay, what?");
         console.log(this.$refs.myh3);
+    },
+    style: {
+        "h3": {
+            background: '#00000022'
+        }
+    },
+    log(e){
+        console.log(e);
     }
 }
