@@ -3,20 +3,20 @@ import example from './components/example.js'
 import router from './router.js'
 import { $ } from './framework/jdom.js'
 
-const exampleComponent = new PJF({
+PJF.component({
     name: "test",
-    template: `<h2 p-click="this.exampleMethod">Component ;)</h2>`,
-    exampleMethod(){
-        alert("example")
+    test: "hello",
+    template: `<h2 p-click="alert(this.test)">Component ;)</h2>`,
+    created(){
+        this.test = Math.random()*10000
     }
 })
 
 PJF.component(router)
 
-PJF.component(exampleComponent)
 
 const app = new PJF({
-    template: `<h1 p-click="console.log('Hello there')">Hello there!</h1><router-view></router-view><test></test>`
+    template: `<h1 p-click="console.log('Hello there')">Hello there!</h1><router-view></router-view><test></test><test></test><test></test>`
 })
 
 

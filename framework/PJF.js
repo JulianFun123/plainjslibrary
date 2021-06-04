@@ -2,11 +2,11 @@ import {$, $n} from './jdom.js'
 
 class PJF {
 
-    static globalComponents = []
+    static globalComponents = {}
     static gmixin = {}
 
     constructor(options = {}){
-        options = {...{components: []}, ...options} 
+        options = {...{components: {}}, ...options} 
         for (const name in PJF.gmixin) {
             this[name] = PJF.gmixin[name]
         }
@@ -14,20 +14,23 @@ class PJF {
             this[name] = options[name]
         }
 
-        console.log(this);
-
         this.template = options.template
         this.components = {} 
         
-        for (const component of PJF.globalComponents)
-            this.components[component.name] = component    
-        
-        for (const component of options.components)
-            this.components[component.name] = component    
+        for (const componentName in {...PJF.globalComponents, ...options.components}) {
+            const component = PJF.globalComponents[componentName]
             
+            if (componentName == component)
+                this.components[component.name] = component
+            else
+                this.components[componentName] = component
+        }    
+        
         this.$refs = {}
         
         this.name = options.name
+
+        this.dom = $n("dom").append(this.template)
     }
 
     template(name, template){
@@ -35,7 +38,6 @@ class PJF {
     }
 
     render(){
-        this.dom = $n("dom").append(this.template)
         
         this.dom.$("[ref]").each(el => {
             this.$refs[el.getAttribute("ref")] = el
@@ -59,8 +61,18 @@ class PJF {
             }
         }
 
+        
         for (const componentName in this.components) {
-            this.dom.$(componentName).html('').append(this.components[componentName].render())
+
+            this.dom.$(componentName).each(el => {
+                let pjf 
+                if (this.components[componentName] instanceof PJF)
+                    pjf = this.components[componentName]
+                else
+                    pjf = (new PJF(this.components[componentName]))
+
+                $(el).html('').append(pjf.render())
+            })
         }
 
 
@@ -70,8 +82,11 @@ class PJF {
         return this.dom
     }
 
-    static component(pjf) {
-        this.globalComponents.push(pjf)
+    static component(name, pjf=false) {
+        if (!pjf)
+            this.globalComponents[name.name] = name
+        else
+            this.globalComponents[name] = pjf
     }
 
     static mixin(mixin) {

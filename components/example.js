@@ -5,7 +5,6 @@ export default {
     tag: "div",
     created(){
         console.log("Okay, what?");
-        console.log(this.$refs.myh3);
     },
     style: {
         "h3": {

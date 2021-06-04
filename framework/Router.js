@@ -22,7 +22,8 @@ class Router extends PJF {
     run(){
         for (const route of this.routes) {
             if (route.path == window.location.pathname) {
-                $(this.$refs.page).html("").append(route.component.render())
+                console.log(route.component);
+                $(this.$refs.page).html("").append((new PJF(route.component)).render())
             }
         }
     }
