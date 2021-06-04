@@ -20,10 +20,10 @@ I just wanted to build something like Vue to look how it may would work with the
         import PJF from './framework/PJF.js'
         import Router from './framework/Router.js'
         import example from './components/example.js'
-        const routes = new Router([
+        const router = new Router([
             {
                 path: "/",
-                components: {template: `<h2>HI</h2>`}
+                component: {template: `<h2>HI</h2>`}
             }
         ])
 
@@ -46,15 +46,20 @@ I just wanted to build something like Vue to look how it may would work with the
             `<div>
                 <h1 p-click="console.log('Hello there')">Hello there!</h1>
                 <router-view></router-view>
-                <span p-text="hello"></span>
-                <test></test>
+                <input id="helloInput" p-model="hello">
+                <span p-text="'Enter: '+this.hello"></span>
                 <test></test>
                 <test></test>
             </div>`,
             hello: "Hello there",
             watch: {
                 hello(from, to){
-                    console.log(to)
+                    console.log("Changed "+to)
+                }
+            },
+            style:{
+                "#helloInput": {
+                    'font-size': "20px"
                 }
             }
         })
