@@ -11,10 +11,15 @@ const exampleComponent = new PJF({
     }
 })
 
+PJF.component(router)
+
 PJF.component(exampleComponent)
 
 const app = new PJF({
-    template: `<h1 p-click="console.log('Hello there')">Hello there!</h1><test></test>`
+    template: `<h1 p-click="console.log('Hello there')">Hello there!</h1><router-view></router-view><test></test>`
 })
 
-$("#app").append(app.render())
+
+app.appendTo("#app")
+
+router.run()

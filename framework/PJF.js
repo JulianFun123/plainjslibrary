@@ -3,12 +3,18 @@ import {$, $n} from './jdom.js'
 class PJF {
 
     static globalComponents = []
+    static gmixin = {}
 
     constructor(options = {}){
         options = {...{components: []}, ...options} 
+        for (const name in PJF.gmixin) {
+            this[name] = PJF.gmixin[name]
+        }
         for (const name in options) {
             this[name] = options[name]
         }
+
+        console.log(this);
 
         this.template = options.template
         this.components = {} 
@@ -19,23 +25,18 @@ class PJF {
         for (const component of options.components)
             this.components[component.name] = component    
             
-        this.mixin = {}
         this.$refs = {}
         
         this.name = options.name
-
-        this.dom = $n("dom").append(this.template)
     }
 
     template(name, template){
         this.templates[name] = {...this.mixin, ...template}
     }
 
-    mixin(mixin){
-        this.mixin = mixin
-    }
-
     render(){
+        this.dom = $n("dom").append(this.template)
+        
         this.dom.$("[ref]").each(el => {
             this.$refs[el.getAttribute("ref")] = el
         })
@@ -54,7 +55,7 @@ class PJF {
         if (this.style) {
             for (const selector in this.style) {
                 const css = this.style[selector]
-                vDom.$(selector).css(css)
+                this.dom.$(selector).css(css)
             }
         }
 
@@ -71,6 +72,14 @@ class PJF {
 
     static component(pjf) {
         this.globalComponents.push(pjf)
+    }
+
+    static mixin(mixin) {
+        PJF.gmixin = {...PJF.gmixin, ...mixin}
+    }
+
+    appendTo(selector){
+        $(selector).append(this.render())
     }
 
 }
