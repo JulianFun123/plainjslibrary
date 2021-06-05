@@ -28,15 +28,27 @@ const app = new PJF({
             data: {
                 myData: "Here"
             },
+            cond: true,
             template: `
                 <div>
                     <input type="text" p-model="data.myData">
                     <input type="text" p-model="data.myData">
                     <span p-text="'Okay: '+this.data.myData">asd</span>
+                    <textarea p-model="data.myData"></textarea>
+                    <test ref="test"></test>
+
+                    <input type="checkbox" p-model="cond">
+                    
+                    <p p-if="this.cond">Hello there</p>
+
+
+                    <p p-text="this.cond ? 'TRUE': 'FALSE'"></p>
+
+                    <p p-attr="{contenteditable: true}" p-model="data.myData">Ye</p>
                 </div>
             `,
             created(){
-                
+                console.log(this.$refs.test);
             },
             watch: {
                 a(from, to){
@@ -44,6 +56,9 @@ const app = new PJF({
                 },
                 'data.myData'(o, n){
                     console.log("CHANGED "+n);
+                },
+                cond(a,b){
+                    console.log(b);
                 }
             }
         }

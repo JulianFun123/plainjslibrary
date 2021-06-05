@@ -35,13 +35,17 @@ class Router extends PJF {
     }
 
     run(){
+        if (this.onPageChange)
+            this.onPageChange()
         for (const route of this.routes) {
-            if (route.path == window.location.pathname) {
-                console.log("YEE");
-                console.log(this.$refs.page);
+            
+            if (route.path == window.location.pathname.match) {
                 let psf = route.component instanceof PJF ? route.component :  new PJF(route.component)
                 this.$refs.page.html("").append(psf.render())
-                console.log(psf.render());
+
+                if (this.onPageChanged)
+                    this.onPageChanged(route)
+                break;
             }
         }
     }

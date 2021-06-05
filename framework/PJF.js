@@ -7,12 +7,6 @@ class PJF {
     static globalComponents = {}
     static gmixin = {}
 
-    set (get){
-        console.log("changed");
-        console.log(get);
-        return get
-    }
-
     constructor(options = {}){
         options = {...{components: {}, ...{watch: {}}}, ...options} 
         for (const name in PJF.gmixin) {
@@ -54,10 +48,6 @@ class PJF {
             if (this.watch[name])
                 this.watch[name](oldValue, value)
         }, ['dom', "name", "$refs", "components", "attributes","template", "watch"])
-
-        
-
-        //Object.defineProperties(this, props);
     }
 
 
@@ -77,13 +67,13 @@ class PJF {
             this.$refs[this.dom.attr('ref')] = this.dom
 
         this.dom.$("[ref]").each(el => {
-            this.$refs[el.getAttribute("ref")] = $(el)
+            console.log(el.pjf);
+            this.$refs[el.getAttribute("ref")] = el.pjf ? el.pjf : $(el)
         })
 
         this.dom.$("input[p-model], textarea[p-model]").each(el => {
-            el = $(el)
-            el.on("input",()=>{
-                PJF.setUnpackObjectValue(this, el.attr("p-model"), el.val())
+            el.addEventListener("input",()=>{
+                PJF.setUnpackObjectValue(this, el.getAttribute("p-model"), el.type=='checkbox' ? el.checked : el.value)
             })
         })
 
@@ -113,6 +103,16 @@ class PJF {
         }
 
         this.dom.pjf = this;
+        this.dom.getFirstElement().pjf = this;
+
+        this.ifElements = {}
+
+        this.dom.$("[p-if]").each(el => {
+            const tag = Math.floor(Math.random()*1000000)
+            el.setAttribute("data-p-if-tag", tag)
+            this.ifElements[tag] = el
+        })
+
         
         for (const componentName in this.components) {
             this.dom.$(componentName).each(el => {
@@ -127,8 +127,9 @@ class PJF {
                 pjf.$attrs = {}
                 for (const attr of el.attributes)
                     pjf.$attrs[attr.name] = attr.value
-                    
-                $(el).html('').append(pjf.render(true))
+                const rendered = pjf.render(true)
+                rendered.pjf = pjf
+                $(el).html('').append(rendered)
             })
         }
 
@@ -162,13 +163,44 @@ class PJF {
         for (const name of list) {
             this.dom.$("[p-model='"+name+"']").each(el => {
                 const val = PJF.unpackObject(this, name)
-                if(el instanceof HTMLInputElement) {
-                    el.value = val
+                if(el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement) {
+                    if (el.type=='checkbox')
+                        el.checked = val
+                    else
+                        el.value = val
                 }
             })
         }
         this.dom.$("[p-text]").each(el => { $(el).text(eval(el.getAttribute("p-text"))) })
         this.dom.$("[p-html]").each(el => { $(el).text(eval(el.getAttribute("p-html"))) })
+
+        this.dom.$("[p-attr]").each(el => {
+            const obj = eval('('+el.getAttribute("p-attr")+')')
+            for (const n in obj){
+                el.setAttribute(n, obj[n])
+                if (obj[n] === false)
+                    el.removeAttribute(n)
+            }
+        })
+        for (const elI in this.ifElements ) {
+            const el = this.ifElements[elI]
+
+            const cond = eval(el.getAttribute("p-if"))
+
+            const cEl = $("[data-p-if-tag='"+el.getAttribute("data-p-if-tag")+"']").getFirstElement();
+            const dEl = $("p-dummy[data-p-if-dummy-tag='"+el.getAttribute("data-p-if-tag")+"']").getFirstElement();
+            
+            if (!cEl && cond) {
+                const dummy = $("[data-p-if-dummy-tag='"+el.getAttribute("data-p-if-tag")+"']").getFirstElement()
+                dummy.parentNode.replaceChild(el, dummy)
+            } else if(!dEl) {
+                const dummy = $n("p-dummy").attr("data-p-if-dummy-tag", el.getAttribute("data-p-if-tag")).css({display:"none", "width":0,height:0,overflow:'hidden',opacity:0}).getFirstElement()
+                el.parentNode.replaceChild(dummy, el)
+            }
+            
+            this.ifElements
+        }
+
     }
 
     static component(v, pjf=false) {
@@ -189,7 +221,6 @@ class PJF {
             let value = object[name]
             let oldValue
     
-            console.log(namePrefix+name);
             if (delete object[name]) {
                 Object.defineProperty(object, name, {
                     get: ()=>{
@@ -199,7 +230,6 @@ class PJF {
                     }, 
                     set: (val)=>{
                         oldValue = value
-                        console.log(val);
                         value = val
                         defSetter(namePrefix+name, oldValue, value)
                         return val
@@ -211,7 +241,6 @@ class PJF {
 
             if (object[name].constructor == ({}).constructor) {
                 this.watch(object[name], defGetter, defSetter, [], name+".")
-                console.log(name);
             }
         }
     }
