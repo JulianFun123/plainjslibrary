@@ -3,6 +3,7 @@
 
 I just wanted to build something like Vue to look how it may would work with the difference that this is completly Vanilla JavaScript with the built-in module system (No webpack, no npm, just plain web).
 
+For more example usage just look into `index.js`
 ## Example:
 ```html
 <!DOCTYPE html>

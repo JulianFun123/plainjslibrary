@@ -67,7 +67,6 @@ class PJF {
             this.$refs[this.dom.attr('ref')] = this.dom
 
         this.dom.$("[ref]").each(el => {
-            console.log(el.pjf);
             this.$refs[el.getAttribute("ref")] = el.pjf ? el.pjf : $(el)
         })
 
@@ -92,8 +91,8 @@ class PJF {
             this.dom.$("[p-"+name+"]").each(addEventToElement)
             this.dom.each(addEventToElement)
         }
+        
 
-        this.updateDynamics()
 
         if (this.style) {
             for (const selector in this.style) {
@@ -110,6 +109,7 @@ class PJF {
         this.dom.$("[p-if]").each(el => {
             const tag = Math.floor(Math.random()*1000000)
             el.setAttribute("data-p-if-tag", tag)
+            
             this.ifElements[tag] = el
         })
 
@@ -129,10 +129,21 @@ class PJF {
                     pjf.$attrs[attr.name] = attr.value
                 const rendered = pjf.render(true)
                 rendered.pjf = pjf
-                $(el).html('').append(rendered)
+                const newEl = rendered.getFirstElement()
+                const attrs = el.attributes
+
+                el.replaceWith(newEl)
+                
+                for (const attr of attrs) {
+                    if (!newEl.hasAttribute(attr.name))
+                        newEl.setAttribute(attr.name, attr.value)
+                }
+
+                //$(el).html('').append(rendered)
             })
         }
 
+        this.updateDynamics()
 
         if (this.created)
             this.created(this.dom)
@@ -171,22 +182,27 @@ class PJF {
                 }
             })
         }
-        this.dom.$("[p-text]").each(el => { $(el).text(eval(el.getAttribute("p-text"))) })
-        this.dom.$("[p-html]").each(el => { $(el).text(eval(el.getAttribute("p-html"))) })
+        try {
+            this.dom.$("[p-text]").each(el => { 
+                $(el).text(eval(el.getAttribute("p-text"))) 
+            })
+            this.dom.$("[p-html]").each(el => { $(el).text(eval(el.getAttribute("p-html"))) })
 
-        this.dom.$("[p-attr]").each(el => {
-            const obj = eval('('+el.getAttribute("p-attr")+')')
-            for (const n in obj){
-                el.setAttribute(n, obj[n])
-                if (obj[n] === false)
-                    el.removeAttribute(n)
-            }
-        })
+            this.dom.$("[p-attr]").each(el => {
+                const obj = eval('('+el.getAttribute("p-attr")+')')
+                for (const n in obj){
+                    el.setAttribute(n, obj[n])
+                    if (obj[n] === false)
+                        el.removeAttribute(n)
+                }
+            })
+        } catch(e){}
+        
         for (const elI in this.ifElements ) {
             const el = this.ifElements[elI]
 
             const cond = eval(el.getAttribute("p-if"))
-
+            
             const cEl = $("[data-p-if-tag='"+el.getAttribute("data-p-if-tag")+"']").getFirstElement();
             const dEl = $("p-dummy[data-p-if-dummy-tag='"+el.getAttribute("data-p-if-tag")+"']").getFirstElement();
             
@@ -209,6 +225,16 @@ class PJF {
             this.globalComponents[v.name] = v
         else
             this.globalComponents[v] = pjf
+    }
+
+    static async import(url) {
+        const t = $n("div").html(await (await fetch(url)).text());
+        let script
+        script = t.$("script") ? t.$("script").html() : 'export default {}';
+
+        const template = (await import('data:text/javascript;charset=utf-8,'+encodeURIComponent(script))).default
+        template.template = t.$("template").html()
+        return template
     }
 
     static mixin(mixin) {

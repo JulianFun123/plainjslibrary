@@ -1,0 +1,41 @@
+* {
+    padding: 0px; 
+    margin: 0px;
+    box-sizing: border-box;
+    font-family: sans-serif;
+}
+
+#nav {
+    background: #FFF;
+    position: fixed;
+    top: 0px;
+    left: 0px;
+    height: 70px;
+    line-height: 70px;
+    width: 100%;
+    padding: 10px 10%;
+}
+
+#nav a {
+    color: #545454;
+    text-decoration: none;
+}
+
+#nav #logo {
+    font-size: 28px;
+    vertical-align: middle;
+}
+
+#nav #right {
+    float: right;
+    vertical-align: middle;
+}
+#nav #right a {
+    margin-left: 10px;
+    font-size: 20px;
+}
+
+#page {
+    padding: 0px 10%;
+    margin-top: 100px;
+}

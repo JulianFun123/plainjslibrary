@@ -1,0 +1,11 @@
+<template>
+    <div>
+        aHello world <span p-text="this.example"></span>
+    </div>
+</template>
+<script>
+export default {
+    name: "example",
+    example: "World"
+}
+</script>
