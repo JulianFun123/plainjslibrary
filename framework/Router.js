@@ -44,6 +44,9 @@ class Router extends PJF {
         for (const route of this.routes) {
             
             if (route.path == window.location.pathname) {
+                if (typeof route.component == 'function')
+                    route.component = route.component()
+                    
                 let psf = route.component instanceof PJF ? route.component :  new PJF(route.component)
                 this.$refs.page.html("").append(psf.render())
 

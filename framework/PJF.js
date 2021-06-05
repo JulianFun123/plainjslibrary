@@ -1,3 +1,4 @@
+import { nestedCSS } from './helper/nestedCSS.js'
 import {$, $n} from './jdom.js'
 
 
@@ -37,6 +38,7 @@ class PJF {
         
         this.name = options.name
 
+        console.log(this.template);
         this.dom = $($n("dom").append(this.template).getElem().children[0])
 
         
@@ -94,11 +96,8 @@ class PJF {
         
 
 
-        if (this.style) {
-            for (const selector in this.style) {
-                const css = this.style[selector]
-                this.dom.$(selector).css(css)
-            }
+        if (this.style && typeof !this.style == 'function') {
+            nestedCSS(this.style , this.dom.getFirstElement())
         }
 
         this.dom.pjf = this;
@@ -218,6 +217,10 @@ class PJF {
             this.ifElements
         }
 
+        if (this.style && typeof this.style == 'function') {
+            nestedCSS(this.style.bind(this)(this), this.dom.getFirstElement())
+        }
+
     }
 
     static component(v, pjf=false) {
@@ -229,9 +232,17 @@ class PJF {
 
     static async import(url) {
         const t = $n("div").html(await (await fetch(url)).text());
-        let script
-        script = t.$("script") ? t.$("script").html() : 'export default {}';
-
+        let script = `async function i(p){
+            let url = window.location.origin+p
+            if (p.startsWith('/'))
+                url = window.location.origin+p
+            else {
+                const a = document.createElement("a"); a.href = p
+                url = a.toString()
+            }
+            return (await import(url)).default
+        }
+        `+t.$("script") ? t.$("script").html() : 'export default {}';
         const template = (await import('data:text/javascript;charset=utf-8,'+encodeURIComponent(script))).default
         template.template = t.$("template").html()
         return template

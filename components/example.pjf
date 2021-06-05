@@ -1,11 +1,14 @@
 <template>
     <div>
-        aHello world <span p-text="this.example"></span>
+        aHello world <span p-text="this.state"></span>
     </div>
 </template>
 <script>
+const state = await i("../state.js")
+
 export default {
     name: "example",
-    example: "World"
+    state,
+    example: "I'm dynamic ;)"
 }
 </script>

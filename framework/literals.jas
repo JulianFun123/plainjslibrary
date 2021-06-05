@@ -1,0 +1,9 @@
+export default {
+
+    html(html){
+        const el = document.createElement(html)
+        el.innerHTML = html
+        return el.children
+    }
+
+}
