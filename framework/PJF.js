@@ -190,9 +190,10 @@ class PJF {
             const cEl = $("[data-p-if-tag='"+el.getAttribute("data-p-if-tag")+"']").getFirstElement();
             const dEl = $("p-dummy[data-p-if-dummy-tag='"+el.getAttribute("data-p-if-tag")+"']").getFirstElement();
             
-            if (!cEl && cond) {
+            if (cond) {
                 const dummy = $("[data-p-if-dummy-tag='"+el.getAttribute("data-p-if-tag")+"']").getFirstElement()
-                dummy.parentNode.replaceChild(el, dummy)
+                if (!cEl)
+                    dummy.parentNode.replaceChild(el, dummy)
             } else if(!dEl) {
                 const dummy = $n("p-dummy").attr("data-p-if-dummy-tag", el.getAttribute("data-p-if-tag")).css({display:"none", "width":0,height:0,overflow:'hidden',opacity:0}).getFirstElement()
                 el.parentNode.replaceChild(dummy, el)
