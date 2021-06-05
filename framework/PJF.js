@@ -185,7 +185,7 @@ class PJF {
             this.dom.$("[p-text]").each(el => { 
                 $(el).text(eval(el.getAttribute("p-text"))) 
             })
-            this.dom.$("[p-html]").each(el => { $(el).text(eval(el.getAttribute("p-html"))) })
+            this.dom.$("[p-html]").each(el => { $(el).html(eval(el.getAttribute("p-html"))) })
 
             this.dom.$("[p-attr]").each(el => {
                 const obj = eval('('+el.getAttribute("p-attr")+')')
@@ -195,7 +195,9 @@ class PJF {
                         el.removeAttribute(n)
                 }
             })
-        } catch(e){}
+        } catch(e){
+            console.log(e);
+        }
         
         for (const elI in this.ifElements ) {
             const el = this.ifElements[elI]
