@@ -38,15 +38,20 @@ class Router extends PJF {
         console.log(this.$refs);
     }
 
-    run(){
+    async run(){
         if (this.onPageChange)
             this.onPageChange()
         for (const route of this.routes) {
             
             if (route.path == window.location.pathname) {
-                if (typeof route.component == 'function')
-                    route.component = route.component()
-                    
+                console.log(route.component);
+                if (typeof route.component == 'function') {
+                    route.component = await route.component()
+
+                    if (route.component.default)
+                        route.component = route.component.default
+                }
+                console.log(route.component);
                 let psf = route.component instanceof PJF ? route.component :  new PJF(route.component)
                 this.$refs.page.html("").append(psf.render())
 

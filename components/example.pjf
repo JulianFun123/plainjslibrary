@@ -4,11 +4,11 @@
     </div>
 </template>
 <script>
-const state = await i("../state.js")
+System.baseUrl = "http://127.0.0.1:5500/"
+import PJF from "/framework/PJF.js"
 
 export default {
     name: "example",
-    state,
     example: "I'm dynamic ;)"
 }
 </script>

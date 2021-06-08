@@ -1,6 +1,6 @@
 import PJF from './framework/PJF.js'
 import navigation from './components/navigation.js'
-console.log(import.meta);
+
 // Inizializing router
 import router from './router.js'
 PJF.component(router)

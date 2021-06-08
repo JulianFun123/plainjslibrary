@@ -17,9 +17,12 @@ class PJF {
             this[name] = options[name]
         }
 
-        this.template = options.template
-        this.components = {} 
+        if (options.template)
+            this.template = options.template
         
+        if (!this.components)
+            this.components = {} 
+
         const allComponents = {...PJF.globalComponents, ...options.components}
 
         for (const componentName in allComponents) {
@@ -34,12 +37,25 @@ class PJF {
         this.watch = options.watch
         
 
-        this.$refs = {}
-        
+        this.$refs = {}        
         this.name = options.name
 
-        console.log(this.template);
-        this.dom = $($n("dom").append(this.template).getElem().children[0])
+        this.$events = {}
+
+        if (typeof this.template == 'function')
+            this.template = this.template()
+
+        this.template = this.template.replaceAll("{{", '<text-node p-text="').replaceAll("}}", '"></text-node>')
+
+        this.$dom = $($n("dom").append(this.template).getElem().children[0])
+
+        this.$textBlocks = []
+
+        this.$dom.$('text-node').each(el => {
+            const textEl = document.createTextNode("a")
+            this.$textBlocks.push({el: textEl, eval: el.getAttribute("p-text")})
+            el.replaceWith(textEl)
+        })
 
         
         const props = {}
@@ -49,7 +65,23 @@ class PJF {
             
             if (this.watch[name])
                 this.watch[name](oldValue, value)
-        }, ['dom', "name", "$refs", "components", "attributes","template", "watch"])
+        }, ['$dom', "name", "$refs", "components", "attributes","template", "watch"])
+    }
+
+    $on(name, callable) {
+        if (!this.$events[name])
+            this.$events[name] = []
+        
+        this.$events[name].push(callable)
+    }
+
+    $emit(name, ...args) {
+        for (const callable of this.$events[name]) {
+            const res = callable.bind(this, args)()
+            if (res && typeof res == 'object' && res.cancelled) {
+                break
+            }
+        }
     }
 
 
@@ -59,20 +91,20 @@ class PJF {
 
     render(renderFirstTime = false){
         if (this.slot) {
-            this.dom.$("slot").each(el => {
+            this.$dom.$("slot").each(el => {
                 el.innerHTML = this.slot
             })
         }
         
 
-        if (this.dom.attr('ref'))
-            this.$refs[this.dom.attr('ref')] = this.dom
+        if (this.$dom.attr('ref'))
+            this.$refs[this.$dom.attr('ref')] = this.$dom
 
-        this.dom.$("[ref]").each(el => {
+        this.$dom.$("[ref]").each(el => {
             this.$refs[el.getAttribute("ref")] = el.pjf ? el.pjf : $(el)
         })
 
-        this.dom.$("input[p-model], textarea[p-model]").each(el => {
+        this.$dom.$("input[p-model], textarea[p-model]").each(el => {
             el.addEventListener("input",()=>{
                 PJF.setUnpackObjectValue(this, el.getAttribute("p-model"), el.type=='checkbox' ? el.checked : el.value)
             })
@@ -90,22 +122,37 @@ class PJF {
                 }
                 
             }
-            this.dom.$("[p-"+name+"]").each(addEventToElement)
-            this.dom.each(addEventToElement)
+            this.$dom.$("[p-"+name+"]").each(addEventToElement)
+            this.$dom.each(addEventToElement)
         }
         
+        let style = this.style
 
-
-        if (this.style && typeof !this.style == 'function') {
-            nestedCSS(this.style , this.dom.getFirstElement())
+        if (style) {
+            if (typeof style == 'function')
+                style = style.bind(this)(this)
+                
+            if (typeof style == 'object') {
+                nestedCSS(style , this.$dom.getFirstElement())
+            } else if (typeof style == 'string') {
+                console.log("OOO");
+                if (!this.$styleSheetEngine) {
+                    this.$styleSheetEngine = new CSSStyleSheet()
+                    const el = document.createElement('div');
+                    const shadow = el.attachShadow({mode: 'open'})
+                    shadow.adoptStyleSheets = [this.$styleSheetEngine]
+                    console.log(shadow);
+                }
+                this.$styleSheetEngine.replace(style)
+            }
         }
 
-        this.dom.pjf = this;
-        this.dom.getFirstElement().pjf = this;
+        this.$dom.pjf = this;
+        this.$dom.getFirstElement().pjf = this;
 
         this.ifElements = {}
 
-        this.dom.$("[p-if]").each(el => {
+        this.$dom.$("[p-if]").each(el => {
             const tag = Math.floor(Math.random()*1000000)
             el.setAttribute("data-p-if-tag", tag)
             
@@ -114,7 +161,7 @@ class PJF {
 
         
         for (const componentName in this.components) {
-            this.dom.$(componentName).each(el => {
+            this.$dom.$(componentName).each(el => {
                 let pjf 
                 if (this.components[componentName] instanceof PJF)
                     pjf = this.components[componentName]
@@ -145,15 +192,15 @@ class PJF {
         this.updateDynamics()
 
         if (this.created)
-            this.created(this.dom)
+            this.created(this.$dom)
         
             
 
-        return this.dom
+        return this.$dom
     }
 
     reload(){
-        this.dom.elem.parentNode.replaceChild(this.dom.elem, this.render().elem)
+        this.$dom.elem.parentNode.replaceChild(this.$dom.elem, this.render().elem)
     }
 
     updateDynamics(){
@@ -171,7 +218,7 @@ class PJF {
         recAdd(this)
 
         for (const name of list) {
-            this.dom.$("[p-model='"+name+"']").each(el => {
+            this.$dom.$("[p-model='"+name+"']").each(el => {
                 const val = PJF.unpackObject(this, name)
                 if(el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement) {
                     if (el.type=='checkbox')
@@ -182,12 +229,12 @@ class PJF {
             })
         }
         try {
-            this.dom.$("[p-text]").each(el => { 
+            this.$dom.$("[p-text]").each(el => { 
                 $(el).text(eval(el.getAttribute("p-text"))) 
             })
-            this.dom.$("[p-html]").each(el => { $(el).html(eval(el.getAttribute("p-html"))) })
+            this.$dom.$("[p-html]").each(el => { $(el).html(eval(el.getAttribute("p-html"))) })
 
-            this.dom.$("[p-attr]").each(el => {
+            this.$dom.$("[p-attr]").each(el => {
                 const obj = eval('('+el.getAttribute("p-attr")+')')
                 for (const n in obj){
                     el.setAttribute(n, obj[n])
@@ -195,6 +242,11 @@ class PJF {
                         el.removeAttribute(n)
                 }
             })
+
+            for (const text of this.$textBlocks) {
+                console.log(text);
+                text.el.textContent = eval(text.eval)
+            }
         } catch(e){
             console.log(e);
         }
@@ -220,7 +272,7 @@ class PJF {
         }
 
         if (this.style && typeof this.style == 'function') {
-            nestedCSS(this.style.bind(this)(this), this.dom.getFirstElement())
+            nestedCSS(this.style.bind(this)(this), this.$dom.getFirstElement())
         }
 
     }
@@ -232,23 +284,16 @@ class PJF {
             this.globalComponents[v] = pjf
     }
 
+    /* TODO
     static async import(url) {
         const t = $n("div").html(await (await fetch(url)).text());
-        let script = `async function i(p){
-            let url = window.location.origin+p
-            if (p.startsWith('/'))
-                url = window.location.origin+p
-            else {
-                const a = document.createElement("a"); a.href = p
-                url = a.toString()
-            }
-            return (await import(url)).default
-        }
+        let script = `
+        
         `+t.$("script") ? t.$("script").html() : 'export default {}';
-        const template = (await import('data:text/javascript;charset=utf-8,'+encodeURIComponent(script))).default
+        const template = (await import('data:text/javascript;charset=utf-8,'+encodeURIComponent(script), "https://google")).default
         template.template = t.$("template").html()
         return template
-    }
+    } */
 
     static mixin(mixin) {
         PJF.gmixin = {...PJF.gmixin, ...mixin}

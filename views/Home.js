@@ -10,8 +10,9 @@ export default {
             Clicks input (Max to current value)
             <input type="number" min="0" p-attr="{max: this.clicks}" p-model="clicks">
 
+            Curly brace syntax: {{this.clicks}}
 
-            <div id="myDiv">
+            <div id="myDiv" p-click="this.$emit('hey', 'Clicked on me')">
                 <h1>Recursive dynamic Style example</h1>
             </div>
         </div>
@@ -31,6 +32,11 @@ export default {
             }
         }
     }},
+    created(){
+        this.$on("hey", (a)=>{
+            alert(a)
+        })
+    },
     watch: {
         clicks(from, to){
             console.log(`Changed from ${from} to ${to}"`);

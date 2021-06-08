@@ -3,6 +3,8 @@
 
 I just wanted to build something like Vue to look how it may would work with the difference that this is completly Vanilla JavaScript with the built-in module system (No webpack, no npm, just plain web).
 
+> Why to not use? The project is too new in two ways. 1. It's too new for being stable and 2. it is too modern. Older browsers don't support any of the new ES6 features and the Firefox does not support async at top level for module until the most recent versions. 
+
 For more example usage just look into `index.js`
 ## Example:
 ```html
@@ -50,6 +52,9 @@ For more example usage just look into `index.js`
                 <input id="helloInput" p-model="hello">
                 <span p-text="'Enter: '+this.hello"></span>
                 <button p-click="alertMe">CLICK ME</button>
+
+                Curly brace syntax: {{}}
+
                 <test></test>
                 <test></test>
             </div>`,
@@ -76,4 +81,17 @@ For more example usage just look into `index.js`
     </script>
 </body>
 </html>
+```
+
+## Optional
+#### WebPack
+You really want to use webpack for this test project? Okay... just do it. You might remove split components, because they don't work on webpack.
+```js
+module.exports = {
+    entry: './index.js',
+    output: {
+        path: `${__dirname}/dist/`,
+        filename: "app.compiled.js"
+    }
+}
 ```
