@@ -19,6 +19,8 @@ class PJF {
 
         if (options.template)
             this.template = options.template
+        else if (!this.template)
+            this.template = ""
         
         if (!this.components)
             this.components = {} 
@@ -43,19 +45,22 @@ class PJF {
         this.$events = {}
 
         if (typeof this.template == 'function')
-            this.template = this.template()
+            this.template = this["template"]()
 
         this.template = this.template.replaceAll("{{", '<text-node p-text="').replaceAll("}}", '"></text-node>')
 
-        this.$dom = $($n("dom").append(this.template).getElem().children[0])
 
         this.$textBlocks = []
 
-        this.$dom.$('text-node').each(el => {
-            const textEl = document.createTextNode("a")
-            this.$textBlocks.push({el: textEl, eval: el.getAttribute("p-text")})
-            el.replaceWith(textEl)
-        })
+        if (this.template !== "") {
+            this.$dom = $($n("dom").append(this.template).getElem().children[0])
+
+            this.$dom.$('text-node').each(el => {
+                const textEl = document.createTextNode("a")
+                this.$textBlocks.push({el: textEl, eval: el.getAttribute("p-text")})
+                el.replaceWith(textEl)
+            })
+        }
 
         
         const props = {}
@@ -76,18 +81,17 @@ class PJF {
     }
 
     $emit(name, ...args) {
-        for (const callable of this.$events[name]) {
-            const res = callable.bind(this, args)()
-            if (res && typeof res == 'object' && res.cancelled) {
-                break
+        if (this.$events[name]){
+            for (const callable of this.$events[name]) {
+                const res = callable.bind(this, args)()
+                if (res && typeof res == 'object' && res.cancelled) {
+                    break
+                }
             }
         }
     }
 
 
-    template(name, template){
-        this.templates[name] = {...this.mixin, ...template}
-    }
 
     render(renderFirstTime = false){
         if (this.slot) {
